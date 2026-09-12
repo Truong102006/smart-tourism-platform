@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Khám phá địa điểm, trải nghiệm địa phương và tự xây dựng lịch trình du lịch Việt Nam."
+    />
+    <meta name="theme-color" content="#123f31" />
+    <script>
+      const savedTheme = localStorage.getItem('di-day-theme')
+      const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+      document.documentElement.dataset.theme = savedTheme || preferredTheme
+    </script>
+    <title>Đi Đây | Khám phá Việt Nam theo cách của bạn</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
