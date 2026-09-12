@@ -1,4 +1,12 @@
-import { FunnelSimple, MagnifyingGlass, MapTrifold, X } from '@phosphor-icons/react'
+import {
+  Compass,
+  FunnelSimple,
+  MagnifyingGlass,
+  MapPin,
+  MapTrifold,
+  Sparkle,
+  X,
+} from '@phosphor-icons/react'
 import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { InlineState } from '@/components/feedback/inline-state'
@@ -24,6 +32,7 @@ export const ExplorePage: React.FC = () => {
   const [category, setCategory] = useState<PlaceCategory | 'Tất cả'>('Tất cả')
   const [showMap, setShowMap] = useState(true)
   const deferredQuery = useDeferredValue(query)
+
   const filters = useMemo(
     () => ({ query: deferredQuery, region, category }),
     [category, deferredQuery, region],
@@ -45,114 +54,174 @@ export const ExplorePage: React.FC = () => {
     setSearchParams({}, { replace: true })
   }
 
+  const resultCount = placesQuery.data?.length ?? 0
+
   return (
     <main className="explore-page page-shell">
-      <header className="page-heading">
-        <p className="eyebrow">Đi đâu hôm nay?</p>
-        <h1>Chọn một nơi hợp nhịp của bạn.</h1>
-        <p>Tìm theo vùng, kiểu trải nghiệm hoặc điều bạn đang muốn làm.</p>
+      {/* ─── Explore Header ─── */}
+      <header className="page-heading explore-page-heading">
+        <div className="hero-badge-capsule">
+          <Compass size={14} weight="fill" />
+          <span>Bản đồ tọa độ Việt Nam</span>
+        </div>
+        <h1 className="explore-title">Khám phá miền đất vừa gu</h1>
+        <p className="explore-subtitle">
+          Lọc theo vùng miền, danh mục cảm xúc hoặc tìm kiếm điểm đến bạn hằng ấp ủ.
+        </p>
       </header>
 
-      <section className="filters" aria-label="Bộ lọc địa điểm">
-        <label className="search-field" htmlFor="explore-search">
-          <span className="sr-only">Tìm địa điểm</span>
-          <MagnifyingGlass size={20} aria-hidden="true" />
-          <input
-            id="explore-search"
-            value={query}
-            onChange={(event) => updateQuery(event.target.value)}
-            placeholder="Tên địa điểm, thành phố, trải nghiệm..."
-          />
-          {query ? (
-            <button type="button" aria-label="Xóa từ khóa" onClick={() => updateQuery('')}>
-              <X size={18} />
-            </button>
-          ) : null}
-        </label>
+      {/* ─── Luxury Filter Bar & Controls ─── */}
+      <section className="explore-filter-panel double-bezel-card" aria-label="Bộ lọc địa điểm">
+        <div className="card-bezel-outer">
+          <div className="card-bezel-inner filter-inner-content">
+            {/* Search Input Box */}
+            <div className="explore-search-shell">
+              <MagnifyingGlass size={20} className="search-icon" aria-hidden="true" />
+              <input
+                id="explore-search"
+                value={query}
+                onChange={(event) => updateQuery(event.target.value)}
+                placeholder="Tìm Hội An, Tràng An, chèo SUP, ẩm thực..."
+                aria-label="Tìm kiếm địa danh hoặc trải nghiệm"
+              />
+              {query ? (
+                <button
+                  type="button"
+                  className="search-clear-btn"
+                  aria-label="Xóa từ khóa"
+                  onClick={() => updateQuery('')}
+                >
+                  <X size={16} weight="bold" />
+                </button>
+              ) : null}
+            </div>
 
-        <div className="filter-row">
-          <div className="filter-group" role="group" aria-label="Chọn vùng">
-            <FunnelSimple size={18} aria-hidden="true" />
-            {regions.map((item) => (
+            {/* Region Filter Pills & Map Toggle */}
+            <div className="filter-controls-row">
+              <div className="region-filter-group" role="group" aria-label="Chọn vùng miền">
+                <span className="filter-group-label">
+                  <FunnelSimple size={16} aria-hidden="true" /> Vùng:
+                </span>
+                {regions.map((item) => (
+                  <button
+                    className={`filter-chip ${region === item ? 'active' : ''}`}
+                    type="button"
+                    key={item}
+                    onClick={() => setRegion(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+
               <button
-                className={region === item ? 'filter-chip active' : 'filter-chip'}
+                className={`button button-secondary map-toggle-btn ${showMap ? 'active' : ''}`}
                 type="button"
-                key={item}
-                onClick={() => setRegion(item)}
+                onClick={() => setShowMap((value) => !value)}
               >
-                {item}
+                <MapTrifold size={18} weight="duotone" />
+                <span>{showMap ? 'Thu gọn bản đồ' : 'Mở bản đồ'}</span>
               </button>
-            ))}
-          </div>
-          <button className="button button-secondary map-toggle" type="button" onClick={() => setShowMap((value) => !value)}>
-            <MapTrifold size={19} /> {showMap ? 'Ẩn bản đồ' : 'Hiện bản đồ'}
-          </button>
-        </div>
+            </div>
 
-        <div className="category-scroller" role="group" aria-label="Chọn loại trải nghiệm">
-          {categories.map((item) => (
-            <button
-              className={category === item ? 'category-tab active' : 'category-tab'}
-              type="button"
-              key={item}
-              onClick={() => setCategory(item)}
-            >
-              {item}
-            </button>
-          ))}
+            {/* Category Filter Pills */}
+            <div className="category-filter-row" role="group" aria-label="Chọn loại trải nghiệm">
+              <span className="filter-group-label">
+                <Sparkle size={16} aria-hidden="true" /> Thể loại:
+              </span>
+              <div className="category-scroll-list">
+                {categories.map((item) => (
+                  <button
+                    className={`category-tab-pill ${category === item ? 'active' : ''}`}
+                    type="button"
+                    key={item}
+                    onClick={() => setCategory(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div className={showMap ? 'explore-layout with-map' : 'explore-layout'}>
-        <section className="results-section" aria-labelledby="results-heading">
-          <div className="results-heading">
-            <h2 id="results-heading">
-              {placesQuery.data ? `${placesQuery.data.length} địa điểm phù hợp` : 'Đang tìm địa điểm'}
-            </h2>
-            {(query || region !== 'Tất cả' || category !== 'Tất cả') ? (
-              <button type="button" onClick={resetFilters}>Xóa bộ lọc</button>
-            ) : null}
+      {/* ─── Map Panel Section (if toggled) ─── */}
+      {showMap && (
+        <section className="explore-map-section double-bezel-card" aria-label="Bản đồ địa điểm">
+          <div className="card-bezel-outer">
+            <div className="card-bezel-inner map-container-inner">
+              <Suspense
+                fallback={
+                  <div className="map-placeholder-luxury">
+                    <MapPin size={32} weight="duotone" className="pulse-icon" />
+                    <span>Đang khởi tạo bản đồ không gian...</span>
+                  </div>
+                }
+              >
+                <MapPanel places={placesQuery.data ?? []} />
+              </Suspense>
+            </div>
           </div>
-
-          {placesQuery.isPending ? (
-            <div className="results-grid" aria-label="Đang tải kết quả">
-              {Array.from({ length: 4 }, (_, index) => (
-                <div className="skeleton skeleton-card" key={index} />
-              ))}
-            </div>
-          ) : null}
-
-          {placesQuery.isError ? (
-            <InlineState
-              title="Không thể tải địa điểm"
-              description="Hãy kiểm tra kết nối và thử lại."
-              actionLabel="Tải lại"
-              onAction={() => void placesQuery.refetch()}
-            />
-          ) : null}
-
-          {placesQuery.data?.length === 0 ? (
-            <InlineState
-              title="Chưa tìm thấy nơi phù hợp"
-              description="Thử đổi vùng, loại trải nghiệm hoặc dùng từ khóa ngắn hơn."
-              actionLabel="Xóa bộ lọc"
-              onAction={resetFilters}
-            />
-          ) : null}
-
-          {placesQuery.data && placesQuery.data.length > 0 ? (
-            <div className="results-grid">
-              {placesQuery.data.map((place) => <PlaceCard key={place.id} place={place} />)}
-            </div>
-          ) : null}
         </section>
+      )}
 
-        {showMap ? (
-          <Suspense fallback={<div className="skeleton map-skeleton" aria-label="Đang tải bản đồ" />}>
-            <MapPanel places={placesQuery.data ?? []} />
-          </Suspense>
-        ) : null}
+      {/* ─── Results Summary Bar ─── */}
+      <div className="explore-results-bar">
+        <div className="results-count">
+          <span>Tìm thấy </span>
+          <strong>{resultCount} địa điểm</strong>
+          {region !== 'Tất cả' && <span className="active-filter-tag">• Miền {region}</span>}
+          {category !== 'Tất cả' && <span className="active-filter-tag">• {category}</span>}
+        </div>
+
+        {(query || region !== 'Tất cả' || category !== 'Tất cả') && (
+          <button type="button" className="reset-filter-btn" onClick={resetFilters}>
+            <X size={14} weight="bold" /> Xóa bộ lọc
+          </button>
+        )}
       </div>
+
+      {/* ─── Place Cards Grid ─── */}
+      {placesQuery.isPending ? (
+        <div className="explore-grid" aria-label="Đang tải danh sách địa điểm">
+          {Array.from({ length: 6 }, (_, index) => (
+            <div className="skeleton skeleton-card" key={index} />
+          ))}
+        </div>
+      ) : null}
+
+      {placesQuery.isError ? (
+        <InlineState
+          title="Không thể tải danh sách"
+          description="Kết nối mạng đang bị gián đoạn. Xin vui lòng thử lại."
+          actionLabel="Tải lại ngay"
+          onAction={() => void placesQuery.refetch()}
+        />
+      ) : null}
+
+      {placesQuery.data && placesQuery.data.length === 0 ? (
+        <div className="explore-empty-state double-bezel-card">
+          <div className="card-bezel-outer">
+            <div className="card-bezel-inner empty-state-inner">
+              <Compass size={48} weight="duotone" className="empty-state-icon" />
+              <h3>Không tìm thấy địa điểm phù hợp</h3>
+              <p>Thử tìm từ khóa rộng hơn như &quot;di sản&quot;, &quot;thiên nhiên&quot; hoặc xóa các bộ lọc hiện tại.</p>
+              <button type="button" className="button button-primary" onClick={resetFilters}>
+                Xem tất cả địa điểm
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {placesQuery.data && placesQuery.data.length > 0 ? (
+        <div className="explore-grid">
+          {placesQuery.data.map((place, index) => (
+            <PlaceCard key={place.id} place={place} priority={index < 3} />
+          ))}
+        </div>
+      ) : null}
     </main>
   )
 }
